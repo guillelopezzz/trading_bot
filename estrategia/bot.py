@@ -24,32 +24,16 @@ class Algorithm:
         self.min_session = min_session
         self.max1 = []
         self.min1 = []
-        self.lowfibonacci_compras = None
-        self.highfibonacci_ventas = None
-        self.highfibonacci_compras = None
-        self.lowfibonacci_ventas = None
-        self.rotura_compras = False
-        self.rotura_ventas = False
-        self.buscarcompras = False
-        self.buscarventas = False
-        self.fibonacci_compras = None
-        self.fibonacci_ventas = None
-        self.precio_compra_inicial = None
-        self.precio_venta_inicial = None
-        self.precio_compra_final = None
-        self.precio_venta_final = None
-        self.stoploss_compra = None
-        self.takeprofit_compra = None
-        self.stoploss_venta = None
-        self.takeprofit_venta = None
-        self.operacion_finalizada_compra = False
-        self.operacion_finalizada_venta = False
+        self.fibonacci_puntos = {'low_compras': None, 'high_ventas': None, 'high_compras': None, 'low_ventas': None}
+        self.roturas = {'compras': False, 'ventas': False}
+        self.buscar = {'compras': False, 'ventas': False}
+        self.fibonacci618 = {'compras': None, 'ventas': None}
+        self.precios = {'compra_inicial': None, 'venta_inicial': None, 'compra_final': None, 'venta_final': None}
+        self.tpysl = {'stoploss_compra': None, 'takeprofit_compra': None, 'stoploss_venta': None, 'takeprofit_venta': None}
+        self.operacion_finalizada = {'compra': False, 'venta': False}
         self.pips = pips # Número de pips por debajo/encima del mínimo/máximo de Fibonacci
         self.max_pips = max_pips # Máximo número de pips para el SL (si lo supera no se hace la operación)
-        self.hora_inicio_operacion_compra = None
-        self.hora_fin_operacion_compra = None
-        self.hora_inicio_operacion_venta = None
-        self.hora_fin_operacion_venta = None
+        self.horas_operacion = {'inicio_compra': None, 'fin_compra': None, 'inicio_venta': None, 'fin_venta': None}
         self.horas = {'hora_ruptura_sesion': None, 'hora_primer_fibonacci_compras': None, 'hora_segundo_fibonacci_compras': None, 'hora_primer_fibonacci_ventas': None, 'hora_segundo_fibonacci_ventas': None}
         self.fecha = (dia, mes, anio)
         self.max_antes_min = None
@@ -60,8 +44,7 @@ class Algorithm:
         self.parar_busqueda_low_fibo = False
         self.conjunto_fechas_maxmin_compra = set()
         self.conjunto_fechas_maxmin_venta = set()
-        self.pausa_compra = False
-        self.pausa_venta = False
+        self.pausa = {'compra': False, 'venta': False}
 
     def fibonacci(self, price1, price2, direction, level):
         """
@@ -84,24 +67,24 @@ class Algorithm:
         Reinicia las variables de compra o de venta para no hacer operaciones simultáneas
 
         """
-        if tipo == 'compra' and not self.operacion_finalizada_compra:
-            self.pausa_compra = True
-            self.rotura_compras = False
-            self.highfibonacci_compras = None
+        if tipo == 'compra' and not self.operacion_finalizada['compra']:
+            self.pausa['compra'] = True
+            self.roturas['compras'] = False
+            self.fibonacci_puntos['high_compras'] = None
             self.highfibonacci_compras_anterior = float('-inf')
             self.horas['hora_segundo_fibonacci_compras'] = None
-            self.fibonacci_compras = None
+            self.fibonacci618['compras'] = None
 
-        if tipo == 'venta' and not self.operacion_finalizada_venta:
-            self.pausa_venta = True
-            self.rotura_ventas = False
-            self.highfibonacci_ventas = None
-            self.highfibonacci_ventas_anterior = float('inf')
+        if tipo == 'venta' and not self.operacion_finalizada['venta']:
+            self.pausa['venta'] = True
+            self.roturas['ventas'] = False
+            self.fibonacci_puntos['low_ventas'] = None
+            self.lowfibonacci_ventas_anterior = float('inf')
             self.horas['hora_segundo_fibonacci_ventas'] = None
-            self.fibonacci_compras = None
+            self.fibonacci618['ventas'] = None
 
     def _process_data(self, new_data, last_three_candles):
-        if not (self.operacion_finalizada_compra and self.operacion_finalizada_venta):
+        if not (self.operacion_finalizada['compra'] and self.operacion_finalizada['venta']):
             # el dato viene en formato tick, ¿qué nos interesa? Nos interesa el precio bid y la hora. Aunque realmente solo nos interesa la hora de 01:00 a 07:55
             # también se necesitan las 3 últimas velas de temporalidad 5 minutos para poder hallar máximos y mínimos
             df_last_three_candles = pd.DataFrame(last_three_candles)
@@ -111,13 +94,13 @@ class Algorithm:
             # Haremos una serie de condiciones para saber qué es lo que debemos hacer con el nuevo dato
             # Fase 1: 01:00-07:55, simplemente debemos identificar máximo y mínimo
             # Fase 3: buscamos máximo o mínimo
-            if not self.rotura_compras:
+            if not self.roturas['compras']:
                 if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2]:
                     if df_last_three_candles['time'][1] not in self.conjunto_fechas_maxmin_compra:
                         self.conjunto_fechas_maxmin_compra.add(df_last_three_candles['time'][1])
                         self.max1.append((df_last_three_candles['high'][1], df_last_three_candles['time'][1]))
 
-            if not self.rotura_ventas:
+            if not self.roturas['ventas']:
                 if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2]:
                     if df_last_three_candles['time'][1] not in self.conjunto_fechas_maxmin_venta:
                         self.conjunto_fechas_maxmin_venta.add(df_last_three_candles['time'][1])
@@ -126,18 +109,18 @@ class Algorithm:
             # Fase 2: Después de las 07:55 UTC+1, buscamos que se liquide el mínimo o el máximo (abrimos operación de compras o de ventas)
             end_session_time = time(*self.end_session)
             if tick_time.time() > end_session_time:
-                if not self.buscarcompras:
+                if not self.buscar['compras']:
                     if new_data['bid'] < self.min_session:
-                        self.buscarcompras = True
+                        self.buscar['compras'] = True
                         self.horas['hora_ruptura_sesion'] = tick_time.time() # Para depurar
 
-                if not self.buscarventas:
+                if not self.buscar['ventas']:
                     if new_data['bid'] > self.max_session:
-                        self.buscarventas = True
+                        self.buscar['ventas'] = True
                         self.horas['hora_ruptura_sesion'] = tick_time.time() # Para depurar
 
                 # Fase 4: buscamos mínimo o máximo (que serán el mínimo Fibonacci o el máximo Fibonacci)
-                if self.max1 and not self.rotura_compras and self.buscarcompras:
+                if self.max1 and not self.roturas['compras'] and self.buscar['compras']:
                     # Buscar el último máximo antes del nuevo mínimo sin pasarse
                     
                     if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2]:
@@ -146,10 +129,10 @@ class Algorithm:
                             key=lambda x: x[1],  # Comparamos los valores de tiempo
                             default=None  # Si no hay un máximo previo, no hacer nada
                         )
-                        self.lowfibonacci_compras = df_last_three_candles['low'][1]
+                        self.fibonacci_puntos['low_compras'] = df_last_three_candles['low'][1]
                         self.horas['hora_primer_fibonacci_compras'] = df_last_three_candles['time'][1]  # Para depurar
                     
-                if self.min1 and not self.rotura_ventas and self.buscarventas:
+                if self.min1 and not self.roturas['ventas'] and self.buscar['ventas']:
                     # Buscar el último mínimo antes del nuevo máximo sin pasarse
                     
                     if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2]:
@@ -158,100 +141,100 @@ class Algorithm:
                             key=lambda x: x[1],  # Comparamos los valores de tiempo
                             default=None  # Si no hay un mínimo previo, no hacer nada
                         )
-                        self.highfibonacci_ventas = df_last_three_candles['high'][1]
+                        self.fibonacci_puntos['high_ventas'] = df_last_three_candles['high'][1]
                         self.horas['hora_primer_fibonacci_ventas'] = df_last_three_candles['time'][1]  # Para depurar
 
                 # Fase 5: buscamos que se rompa el máximo o el mínimo de la Fase 3
-                if self.lowfibonacci_compras is not None and not self.rotura_compras and not self.pausa_compra:
+                if self.fibonacci_puntos['low_compras'] is not None and not self.roturas['compras'] and not self.pausa['compra']:
                     if new_data['bid'] > self.max_antes_min[0]:
-                        self.rotura_compras = True
+                        self.roturas['compras'] = True
 
-                if self.highfibonacci_ventas is not None and not self.rotura_ventas and not self.pausa_venta:
+                if self.fibonacci_puntos['high_ventas'] is not None and not self.roturas['ventas'] and not self.pausa['venta']:
                     if new_data['bid'] < self.min_antes_max[0]:
-                        self.rotura_ventas = True
+                        self.roturas['ventas'] = True
 
                 # Fase 6: buscamos un máximo o un mínimo después de la rotura, que será nuestro máximo o mínimo de fibonacci
-                if self.rotura_compras and self.precio_compra_inicial is None and not self.parar_busqueda_high_fibo and not self.pausa_compra:
+                if self.roturas['compras'] and self.precios['compra_inicial'] is None and not self.parar_busqueda_high_fibo and not self.pausa['compra']:
                     if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2] and df_last_three_candles['high'][1] > self.max_antes_min[0] and df_last_three_candles['high'][1] > self.highfibonacci_compras_anterior:
-                        self.highfibonacci_compras = df_last_three_candles['high'][1]
+                        self.fibonacci_puntos['high_compras'] = df_last_three_candles['high'][1]
                         self.horas['hora_segundo_fibonacci_compras'] = df_last_three_candles['time'][1]
                         self.highfibonacci_compras_anterior = df_last_three_candles['high'][1]
-                        # Debemos recalcular fibonacci
-                        self.fibonacci_compras = None
+                        # Debemos recalcular Fibonacci
+                        self.fibonacci618['compras'] = None
 
-                if self.rotura_ventas and self.precio_venta_inicial is None and not self.parar_busqueda_low_fibo and not self.pausa_venta:
+                if self.roturas['ventas'] and self.precios['venta_inicial'] is None and not self.parar_busqueda_low_fibo and not self.pausa['venta']:
                     if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2] and df_last_three_candles['low'][1]< self.min_antes_max[0] and df_last_three_candles['low'][1] < self.lowfibonacci_ventas_anterior:
-                        self.lowfibonacci_ventas = df_last_three_candles['low'][1]
+                        self.fibonacci_puntos['low_ventas'] = df_last_three_candles['low'][1]
                         self.horas['hora_segundo_fibonacci_ventas'] = df_last_three_candles['time'][1]
                         self.lowfibonacci_ventas_anterior = df_last_three_candles['low'][1]
                         # Debemos recalcular Fibonacci
-                        self.fibonacci_ventas = None
+                        self.fibonacci618['ventas'] = None
 
                 # Fase 7: Marcamos Fibonacci 0.618
-                if self.highfibonacci_compras is not None and self.fibonacci_compras is None and not self.pausa_compra:
-                    self.fibonacci_compras = self.fibonacci(self.lowfibonacci_compras, self.highfibonacci_compras, 'down', 0.618)
-                if self.lowfibonacci_ventas is not None and self.fibonacci_ventas is None and not self.pausa_venta:
-                    self.fibonacci_ventas = self.fibonacci(self.highfibonacci_ventas, self.lowfibonacci_ventas, 'up', 0.618)
+                if self.fibonacci_puntos['high_compras'] is not None and self.fibonacci618['compras'] is None and not self.pausa['compra']:
+                    self.fibonacci618['compras'] = self.fibonacci(self.fibonacci_puntos['low_compras'], self.fibonacci_puntos['high_compras'], 'down', 0.618)
+                if self.fibonacci_puntos['low_ventas'] is not None and self.fibonacci618['ventas'] is None and not self.pausa['venta']:
+                    self.fibonacci618['ventas'] = self.fibonacci(self.fibonacci_puntos['high_ventas'], self.fibonacci_puntos['low_ventas'], 'up', 0.618)
 
                 # Fase 8: Cuando el precio retroceda al Fibonacci que marcamos, abrimos posición de compra/venta
-                if self.fibonacci_compras is not None and self.precio_compra_inicial is None and not self.pausa_compra:
-                    if new_data['bid'] <= self.fibonacci_compras:
+                if self.fibonacci618['compras'] is not None and self.precios['compra_inicial'] is None and not self.pausa['compra']:
+                    if new_data['bid'] <= self.fibonacci618['compras']:
                         self._reiniciar('venta')
                         self.parar_busqueda_high_fibo = True
-                        self.stoploss_compra = self.lowfibonacci_compras - (0.0001 * self.pips)  # SL a self.pips por debajo del nivel Fibonacci
-                        risk = new_data['bid'] - self.stoploss_compra  # Distancia entre el precio actual y el SL
+                        self.tpysl['stoploss_compra'] = self.fibonacci_puntos['low_compras'] - (0.0001 * self.pips)  # SL a self.pips por debajo del nivel Fibonacci
+                        risk = new_data['bid'] - self.tpysl['stoploss_compra']  # Distancia entre el precio actual y el SL
                         if risk > self.max_pips * 0.0001:
-                            self.stoploss_compra = self.fibonacci(self.lowfibonacci_compras, self.highfibonacci_compras, 'down', 0.7) - 0.0003 # 3 pips por debajo de Fibo 0.7
-                            risk = new_data['bid'] - self.stoploss_compra
+                            self.tpysl['stoploss_compra'] = self.fibonacci(self.fibonacci_puntos['low_compras'], self.fibonacci_puntos['high_compras'], 'down', 0.7) - 0.0003 # 3 pips por debajo de Fibo 0.7
+                            risk = new_data['bid'] - self.tpysl['stoploss_compra']
                             if risk > self.max_pips * 0.0001:
-                                self.operacion_finalizada_compra = True
-                                self.pausa_venta = False
-                        self.precio_compra_inicial = new_data['bid'] # abrimos operación de compra
-                        self.hora_inicio_operacion_compra = tick_time.time()
-                        self.takeprofit_compra = new_data['bid'] + 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
+                                self.operacion_finalizada['compra'] = True
+                                self.pausa['ventas'] = False
+                        self.precios['compra_inicial'] = new_data['bid'] # abrimos operación de compra
+                        self.horas_operacion['inicio_compra'] = tick_time.time()
+                        self.tpysl['takeprofit_compra'] = new_data['bid'] + 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
                         
-                if self.fibonacci_ventas is not None and self.precio_venta_inicial is None and not self.pausa_venta:
-                    if new_data['bid'] >= self.fibonacci_ventas:
+                if self.fibonacci618['ventas'] is not None and self.precios['venta_inicial'] is None and not self.pausa['venta']:
+                    if new_data['bid'] >= self.fibonacci618['ventas']:
                         self._reiniciar('compra')
                         self.parar_busqueda_low_fibo = True
-                        self.stoploss_venta = self.highfibonacci_ventas + (0.0001 * self.pips)  # SL a self.pips por encima del nivel Fibonacci
-                        risk = self.stoploss_venta - new_data['bid']  # Distancia entre el SL y el precio actual
+                        self.tpysl['stoploss_venta'] = self.fibonacci_puntos['high_ventas'] + (0.0001 * self.pips)  # SL a self.pips por encima del nivel Fibonacci
+                        risk = self.tpysl['stoploss_venta'] - new_data['bid']  # Distancia entre el SL y el precio actual
                         if risk > self.max_pips * 0.0001:
-                            self.stoploss_venta = self.fibonacci(self.highfibonacci_ventas, self.lowfibonacci_ventas, 'up', 0.7) + 0.0003 # 3 pips por encima de Fibo 0.7
-                            risk = self.stoploss_venta - new_data['bid']
+                            self.tpysl['stoploss_venta'] = self.fibonacci(self.fibonacci_puntos['high_ventas'], self.fibonacci_puntos['low_ventas'], 'up', 0.7) + 0.0003 # 3 pips por encima de Fibo 0.7
+                            risk = self.tpysl['stoploss_venta'] - new_data['bid']
                             if risk > self.max_pips * 0.0001:
-                                self.operacion_finalizada_venta = True
-                                self.pausa_compra = False
-                        self.precio_venta_inicial = new_data['bid'] # abrimos operación de venta
-                        self.hora_inicio_operacion_venta = tick_time.time()
-                        self.takeprofit_venta = new_data['bid'] - 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
+                                self.operacion_finalizada['venta'] = True
+                                self.pausa['compras'] = False
+                        self.precios['venta_inicial'] = new_data['bid'] # abrimos operación de venta
+                        self.horas_operacion['inicio_venta'] = tick_time.time()
+                        self.tpysl['takeprofit_venta'] = new_data['bid'] - 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
 
                 # Fase 9: El SL estará 2 pips por debajo/encima del mínimo/máximo de Fibonacci con un límite de 10.8 pips. TP = 2*SL
-                if self.precio_compra_inicial is not None and not self.operacion_finalizada_compra:
-                    if new_data['bid'] >= self.takeprofit_compra:
-                        self.precio_compra_final = new_data['bid'] # Ganamos
-                        self.operacion_finalizada_compra = True
-                        self.pausa_venta = False
-                        self.hora_fin_operacion_compra = tick_time.time()
+                if self.precios['compra_inicial'] is not None and not self.operacion_finalizada['compra']:
+                    if new_data['bid'] >= self.tpysl['takeprofit_compra']:
+                        self.precios['compra_final'] = new_data['bid'] # Ganamos
+                        self.operacion_finalizada['compra'] = True
+                        self.pausa['venta'] = False
+                        self.horas_operacion['fin_compra'] = tick_time.time()
 
-                    if new_data['bid'] <= self.stoploss_compra:
-                        self.precio_compra_final = new_data['bid'] # Perdemos
-                        self.operacion_finalizada_compra = True
-                        self.pausa_venta = False
-                        self.hora_fin_operacion_compra = tick_time.time()
+                    if new_data['bid'] <= self.tpysl['stoploss_compra']:
+                        self.precios['compra_final'] = new_data['bid'] # Perdemos
+                        self.operacion_finalizada['compra'] = True
+                        self.pausa['venta'] = False
+                        self.horas_operacion['fin_compra'] = tick_time.time()
 
-                if self.precio_venta_inicial is not None and not self.operacion_finalizada_venta:
-                    if new_data['bid'] <= self.takeprofit_venta:
-                        self.precio_venta_final = new_data['bid'] # Ganamos
-                        self.operacion_finalizada_venta = True
-                        self.pausa_compra = False
-                        self.hora_fin_operacion_venta =tick_time.time()
+                if self.precios['venta_inicial'] is not None and not self.operacion_finalizada['venta']:
+                    if new_data['bid'] <= self.tpysl['takeprofit_venta']:
+                        self.precios['venta_final'] = new_data['bid'] # Ganamos
+                        self.operacion_finalizada['venta'] = True
+                        self.pausa['compra'] = False
+                        self.horas_operacion['fin_venta'] =tick_time.time()
 
-                    if new_data['bid'] >= self.stoploss_venta:
-                        self.precio_venta_final = new_data['bid'] # Perdemos
-                        self.operacion_finalizada_venta = True
-                        self.pausa_compra = False
-                        self.hora_fin_operacion_venta = tick_time.time()
+                    if new_data['bid'] >= self.tpysl['stoploss_venta']:
+                        self.precios['venta_final'] = new_data['bid'] # Perdemos
+                        self.operacion_finalizada['venta'] = True
+                        self.pausa['compra'] = False
+                        self.horas_operacion['fin_venta'] = tick_time.time()
 
         #except Exception as e:
             #print(f"Error al obtener o procesar el tick: {e}")
@@ -262,35 +245,36 @@ class Algorithm:
             f"Sesión: {self.start_session[0]:02d}:{self.start_session[1]:02d} - {self.end_session[0]:02d}:{self.end_session[1]:02d}\n"
             f"Mínimo de sesión: {self.min_session}\n"
             f"Máximo de sesión: {self.max_session}\n"
-            f"Máximo 1: {self.max1}\n"
-            f"Mínimo 1: {self.min1}\n"
-            f"Fibonacci compras: {self.fibonacci_compras} (Low: {self.lowfibonacci_compras}, High: {self.highfibonacci_compras})\n"
-            f"Fibonacci ventas: {self.fibonacci_ventas} (Low: {self.lowfibonacci_ventas}, High: {self.highfibonacci_ventas})\n"
-            f"Rotura compras: {'Sí' if self.rotura_compras else 'No'}\n"
-            f"Rotura ventas: {'Sí' if self.rotura_ventas else 'No'}\n"
-            f"Buscar compras: {'Sí' if self.buscarcompras else 'No'}\n"
-            f"Buscar ventas: {'Sí' if self.buscarventas else 'No'}\n"
-            f"Precio compra: Inicial {self.precio_compra_inicial}, Final {self.precio_compra_final}\n"
-            f"Precio venta: Inicial {self.precio_venta_inicial}, Final {self.precio_venta_final}\n"
-            f"Stoploss compra: {self.stoploss_compra}\n"
-            f"Takeprofit compra: {self.takeprofit_compra}\n"
-            f"Stoploss venta: {self.stoploss_venta}\n"
-            f"Takeprofit venta: {self.takeprofit_venta}\n"
-            f"Operación finalizada compra: {'Sí' if self.operacion_finalizada_compra else 'No'}\n"
-            f"Operación finalizada venta: {'Sí' if self.operacion_finalizada_venta else 'No'}\n"
+            f"Máximos 1: {self.max1}\n"
+            f"Mínimos 1: {self.min1}\n"
+            f"Puntos de Fibonacci: Low Compras: {self.fibonacci_puntos['low_compras']}, High Ventas: {self.fibonacci_puntos['high_ventas']}, "
+            f"High Compras: {self.fibonacci_puntos['high_compras']}, Low Ventas: {self.fibonacci_puntos['low_ventas']}\n"
+            f"Fibonacci 61.8%: Compras: {self.fibonacci618['compras']}, Ventas: {self.fibonacci618['ventas']}\n"
+            f"Roturas: Compras: {'Sí' if self.roturas['compras'] else 'No'}, Ventas: {'Sí' if self.roturas['ventas'] else 'No'}\n"
+            f"Buscar operaciones: Compras: {'Sí' if self.buscar['compras'] else 'No'}, Ventas: {'Sí' if self.buscar['ventas'] else 'No'}\n"
+            f"Precios: Compra Inicial: {self.precios['compra_inicial']}, Compra Final: {self.precios['compra_final']}, "
+            f"Venta Inicial: {self.precios['venta_inicial']}, Venta Final: {self.precios['venta_final']}\n"
+            f"Stoploss y Takeprofit: SL Compra: {self.tpysl['stoploss_compra']}, TP Compra: {self.tpysl['takeprofit_compra']}, "
+            f"SL Venta: {self.tpysl['stoploss_venta']}, TP Venta: {self.tpysl['takeprofit_venta']}\n"
+            f"Operación finalizada: Compra: {'Sí' if self.operacion_finalizada['compra'] else 'No'}, Venta: {'Sí' if self.operacion_finalizada['venta'] else 'No'}\n"
             f"Pips: {self.pips}, Máx. Pips: {self.max_pips}\n"
-            f"Hora inicio operación compra: {self.hora_inicio_operacion_compra}\n"
-            f"Hora fin operación compra: {self.hora_fin_operacion_compra}\n"
-            f"Hora inicio operación venta: {self.hora_inicio_operacion_venta}\n"
-            f"Hora fin operación venta: {self.hora_fin_operacion_venta}\n"
+            f"Horas operación: Inicio Compra: {self.horas_operacion['inicio_compra']}, Fin Compra: {self.horas_operacion['fin_compra']}, "
+            f"Inicio Venta: {self.horas_operacion['inicio_venta']}, Fin Venta: {self.horas_operacion['fin_venta']}\n"
             f"Horas clave:\n"
             f"  - Ruptura sesión: {self.horas['hora_ruptura_sesion']}\n"
             f"  - Primer Fibonacci compras: {self.horas['hora_primer_fibonacci_compras']}\n"
+            f"  - Segundo Fibonacci compras: {self.horas['hora_segundo_fibonacci_compras']}\n"
             f"  - Primer Fibonacci ventas: {self.horas['hora_primer_fibonacci_ventas']}\n"
-            f"  - Segundo Fibonacci compras: {self.horas['hora_primer_fibonacci_compras']}\n"
             f"  - Segundo Fibonacci ventas: {self.horas['hora_segundo_fibonacci_ventas']}\n"
+            f"Max antes del Min: {'Sí' if self.max_antes_min else 'No'}\n"
+            f"Min antes del Max: {'Sí' if self.min_antes_max else 'No'}\n"
+            f"High Fibonacci Compras Anterior: {self.highfibonacci_compras_anterior}\n"
+            f"Low Fibonacci Ventas Anterior: {self.lowfibonacci_ventas_anterior}\n"
+            f"Parar búsqueda: High Fibo: {'Sí' if self.parar_busqueda_high_fibo else 'No'}, Low Fibo: {'Sí' if self.parar_busqueda_low_fibo else 'No'}\n"
+            f"Pausa operaciones: Compra: {'Sí' if self.pausa['compra'] else 'No'}, Venta: {'Sí' if self.pausa['venta'] else 'No'}\n"
         )
         return info
+
 
     def generar_grafico(self):
         # Esta función será para representar gráficamente lo que hizo el algoritmo
@@ -343,15 +327,15 @@ class Algorithm:
             spine.set_visible(False)
 
         ### DIBUJAR TP compra
-        if self.operacion_finalizada_compra:
-            if self.precio_compra_final is not None:
+        if self.operacion_finalizada['compra']:
+            if self.precios['compra_final'] is not None:
 
-                price_low = self.precio_compra_inicial
-                price_high = self.takeprofit_compra
+                price_low = self.precios['compra_inicial']
+                price_high = self.tpysl['takeprofit_compra']
 
-            if self.hora_inicio_operacion_compra is not None and self.hora_fin_operacion_compra is not None:
-                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_inicio_operacion_compra.hour, self.hora_inicio_operacion_compra.minute)
-                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_fin_operacion_compra.hour, self.hora_fin_operacion_compra.minute)
+            if self.horas_operacion['inicio_compra'] is not None and self.horas_operacion['fin_compra'] is not None:
+                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['inicio_compra'].hour, self.horas_operacion['inicio_compra'].minute)
+                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['fin_compra'].hour, self.horas_operacion['fin_compra'].minute)
 
                 # Encontrar los índices más cercanos con get_indexer
                 start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
@@ -363,13 +347,14 @@ class Algorithm:
                 ax[0].add_patch(rect)
 
         ### DIBUJAR SL compra
-            if self.precio_compra_final is not None:
-                price_low = self.stoploss_compra
-                price_high = self.precio_compra_inicial
+            if self.precios['compra_final'] is not None:
+                price_low = self.tpysl['stoploss_compra']
+                price_high = self.precios['compra_inicial']
 
-            if self.hora_inicio_operacion_compra is not None and self.hora_fin_operacion_compra is not None:
-                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_inicio_operacion_compra.hour, self.hora_inicio_operacion_compra.minute)
-                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_fin_operacion_compra.hour, self.hora_fin_operacion_compra.minute)
+            if self.horas_operacion['inicio_compra'] is not None and self.horas_operacion['fin_compra'] is not None:
+
+                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['inicio_compra'].hour, self.horas_operacion['inicio_compra'].minute)
+                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['fin_compra'].hour, self.horas_operacion['fin_compra'].minute)
 
                 # Encontrar los índices más cercanos con get_indexer
                 start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
@@ -381,15 +366,15 @@ class Algorithm:
                 ax[0].add_patch(rect)
 
         ### DIBUJAR TP venta
-        if self.operacion_finalizada_venta:
-            if self.precio_venta_final is not None:
+        if self.operacion_finalizada['venta']:
+            if self.precios['venta_final'] is not None:
 
-                price_low = self.takeprofit_venta
-                price_high = self.precio_venta_inicial
+                price_low = self.tpysl['takeprofit_venta']
+                price_high = self.precios['venta_inicial']
 
-            if self.hora_inicio_operacion_venta is not None and self.hora_fin_operacion_venta is not None:
-                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_inicio_operacion_venta.hour, self.hora_inicio_operacion_venta.minute)
-                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_fin_operacion_venta.hour, self.hora_fin_operacion_venta.minute)
+            if self.horas_operacion['inicio_venta'] is not None and self.horas_operacion['fin_venta'] is not None:
+                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['inicio_venta'].hour, self.horas_operacion['inicio_venta'].minute)
+                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['fin_venta'].hour, self.horas_operacion['fin_venta'].minute)
 
                 # Encontrar los índices más cercanos con get_indexer
                 start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
@@ -401,13 +386,13 @@ class Algorithm:
                 ax[0].add_patch(rect)
 
         ### DIBUJAR SL venta
-            if self.precio_venta_final is not None:
-                price_low = self.precio_venta_inicial
-                price_high = self.stoploss_venta
+            if self.precios['venta_inicial'] is not None:
+                price_low = self.precios['venta_inicial']
+                price_high = self.tpysl['stoploss_venta']
 
-            if self.hora_inicio_operacion_venta is not None and self.hora_fin_operacion_venta is not None:
-                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_inicio_operacion_venta.hour, self.hora_inicio_operacion_venta.minute)
-                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.hora_fin_operacion_venta.hour, self.hora_fin_operacion_venta.minute)
+            if self.horas_operacion['inicio_venta'] is not None and self.horas_operacion['fin_venta'] is not None:
+                start_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['inicio_venta'].hour, self.horas_operacion['inicio_venta'].minute)
+                end_rect = pd.Timestamp(self.fecha[2], self.fecha[1], self.fecha[0], self.horas_operacion['fin_venta'].hour, self.horas_operacion['fin_venta'].minute)
 
                 # Encontrar los índices más cercanos con get_indexer
                 start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
@@ -439,9 +424,10 @@ class Algorithm:
 
         ## DIBUJAR FIBONACCI compras
 
-        if self.fibonacci_compras is not None:
-            price_low = self.fibonacci_compras
-            price_high = self.fibonacci_compras
+        if self.fibonacci618['compras'] is not None:
+            price_low = self.fibonacci618['compras']
+            price_high = self.fibonacci618['compras']
+
         # Dibujar el rectángulo
         if self.horas['hora_primer_fibonacci_compras'] is not None and self.horas['hora_segundo_fibonacci_compras'] is not None:
             df.index = df.index.tz_convert('UTC') if df.index.tz else df.index.tz_localize('UTC')
@@ -456,27 +442,28 @@ class Algorithm:
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
-        if self.lowfibonacci_compras is not None:
-            price_low = self.lowfibonacci_compras
-            price_high = self.lowfibonacci_compras
+        if self.fibonacci_puntos['low_compras'] is not None:
+            price_low = self.fibonacci_puntos['low_compras']
+            price_high = self.fibonacci_puntos['low_compras']
 
-        if self.lowfibonacci_compras is not None:
+        if self.fibonacci_puntos['low_compras'] is not None:
             # Dibujar el rectángulo
             rect = Rectangle((start_idx, price_low), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
-        if self.highfibonacci_compras is not None:
+        if self.fibonacci_puntos['high_compras'] is not None:
             # Dibujar el rectángulo
-            rect = Rectangle((start_idx, self.highfibonacci_compras), end_idx - start_idx, 0,
+            rect = Rectangle((start_idx, self.fibonacci_puntos['high_compras']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
         ## DIBUJAR FIBONACCI ventas
 
-        if self.fibonacci_ventas is not None:
-            price_low = self.fibonacci_ventas
-            price_high = self.fibonacci_ventas
+        if self.fibonacci618['ventas'] is not None:
+            price_low = self.fibonacci618['ventas']
+            price_high = self.fibonacci618['ventas']
+
         # Dibujar el rectángulo
         if self.horas['hora_primer_fibonacci_ventas'] is not None and self.horas['hora_segundo_fibonacci_ventas'] is not None:
             df.index = df.index.tz_convert('UTC') if df.index.tz else df.index.tz_localize('UTC')
@@ -491,23 +478,20 @@ class Algorithm:
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
-        if self.lowfibonacci_compras is not None:
-            price_low = self.lowfibonacci_compras
-            price_high = self.lowfibonacci_compras
-
-        if self.lowfibonacci_ventas is not None:
-            price_low = self.lowfibonacci_ventas
-            price_high = self.lowfibonacci_ventas
-
-        if self.lowfibonacci_compras is not None or self.lowfibonacci_ventas is not None:
+        if self.fibonacci_puntos['low_compras'] is not None:
             # Dibujar el rectángulo
-            rect = Rectangle((start_idx, price_low), end_idx - start_idx, price_high - price_low,
+            rect = Rectangle((start_idx, self.fibonacci_puntos['low_compras']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
-        if self.highfibonacci_ventas is not None:
+        if self.fibonacci_puntos['low_ventas'] is not None:
+            rect = Rectangle((start_idx, self.fibonacci_puntos['low_ventas']), end_idx - start_idx, 0,
+                            linewidth=1, edgecolor='black', alpha=1)
+            ax[0].add_patch(rect)
+
+        if self.fibonacci_puntos['high_ventas'] is not None:
             # Dibujar el rectángulo
-            rect = Rectangle((start_idx, self.highfibonacci_ventas), end_idx - start_idx, 0,
+            rect = Rectangle((start_idx, self.fibonacci_puntos['high_ventas']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
@@ -590,7 +574,7 @@ while i < len(df_ticks):
         # Llamar al método _process_data con los datos actualizados
         algo._process_data(new_data, last_three_candles)
         pbar.update(1)
-        if algo.operacion_finalizada_compra and algo.operacion_finalizada_venta: break
+        if algo.operacion_finalizada['compra'] and algo.operacion_finalizada['venta']: break
     i += 1
 # Cerrar la conexión con MetaTrader 5
 mt5.shutdown()
