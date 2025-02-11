@@ -424,12 +424,8 @@ class Algorithm:
 
         ## DIBUJAR FIBONACCI compras
 
-        if self.fibonacci618['compras'] is not None:
-            price_low = self.fibonacci618['compras']
-            price_high = self.fibonacci618['compras']
-
         # Dibujar el rectángulo
-        if self.horas['hora_primer_fibonacci_compras'] is not None and self.horas['hora_segundo_fibonacci_compras'] is not None:
+        if self.horas['hora_primer_fibonacci_compras'] is not None and self.horas['hora_segundo_fibonacci_compras'] is not None and self.fibonacci618['compras'] is not None:
             df.index = df.index.tz_convert('UTC') if df.index.tz else df.index.tz_localize('UTC')
             # Convertir las marcas de tiempo a UTC
             start_rect = self.horas['hora_primer_fibonacci_compras']
@@ -438,13 +434,9 @@ class Algorithm:
             # Encontrar los índices más cercanos con get_indexer
             start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
             end_idx = df.index.get_indexer([end_rect], method='nearest')[0]
-            rect = Rectangle((start_idx, price_low), end_idx - start_idx, 0,
+            rect = Rectangle((start_idx, self.fibonacci618['compras']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
-
-        if self.fibonacci_puntos['low_compras'] is not None:
-            price_low = self.fibonacci_puntos['low_compras']
-            price_high = self.fibonacci_puntos['low_compras']
 
         if self.fibonacci_puntos['low_compras'] is not None:
             # Dibujar el rectángulo
@@ -460,12 +452,8 @@ class Algorithm:
 
         ## DIBUJAR FIBONACCI ventas
 
-        if self.fibonacci618['ventas'] is not None:
-            price_low = self.fibonacci618['ventas']
-            price_high = self.fibonacci618['ventas']
-
         # Dibujar el rectángulo
-        if self.horas['hora_primer_fibonacci_ventas'] is not None and self.horas['hora_segundo_fibonacci_ventas'] is not None:
+        if self.horas['hora_primer_fibonacci_ventas'] is not None and self.horas['hora_segundo_fibonacci_ventas'] is not None and self.fibonacci618['ventas'] is not None:
             df.index = df.index.tz_convert('UTC') if df.index.tz else df.index.tz_localize('UTC')
             # Convertir las marcas de tiempo a UTC
             start_rect = self.horas['hora_primer_fibonacci_ventas']
@@ -474,13 +462,7 @@ class Algorithm:
             # Encontrar los índices más cercanos con get_indexer
             start_idx = df.index.get_indexer([start_rect], method='nearest')[0]
             end_idx = df.index.get_indexer([end_rect], method='nearest')[0]
-            rect = Rectangle((start_idx, price_low), end_idx - start_idx, 0,
-                            linewidth=1, edgecolor='black', alpha=1)
-            ax[0].add_patch(rect)
-
-        if self.fibonacci_puntos['low_compras'] is not None:
-            # Dibujar el rectángulo
-            rect = Rectangle((start_idx, self.fibonacci_puntos['low_compras']), end_idx - start_idx, 0,
+            rect = Rectangle((start_idx, self.fibonacci618['ventas']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
