@@ -440,7 +440,7 @@ class Algorithm:
 
         if self.fibonacci_puntos['low_compras'] is not None:
             # Dibujar el rectángulo
-            rect = Rectangle((start_idx, price_low), end_idx - start_idx, 0,
+            rect = Rectangle((start_idx, self.fibonacci_puntos['low_compras']), end_idx - start_idx, 0,
                             linewidth=1, edgecolor='black', alpha=1)
             ax[0].add_patch(rect)
 
