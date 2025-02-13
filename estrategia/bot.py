@@ -45,6 +45,8 @@ class Algorithm:
         self.conjunto_fechas_maxmin_compra = set()
         self.conjunto_fechas_maxmin_venta = set()
         self.pausa = {'compra': False, 'venta': False}
+        self.primer_fibonacci_anterior = {'compras': float('inf'), 'ventas': float('-inf')}
+
 
     def fibonacci(self, price1, price2, direction, level):
         """
@@ -123,7 +125,7 @@ class Algorithm:
                 if self.max1 and not self.roturas['compras'] and self.buscar['compras']:
                     # Buscar el último máximo antes del nuevo mínimo sin pasarse
                     
-                    if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2]:
+                    if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2] and df_last_three_candles['low'][1] < self.primer_fibonacci_anterior['compras']:
                         self.max_antes_min = max(
                             [(valor, tiempo) for valor, tiempo in self.max1 if tiempo < df_last_three_candles['time'][1]],
                             key=lambda x: x[1],  # Comparamos los valores de tiempo
@@ -131,11 +133,12 @@ class Algorithm:
                         )
                         self.fibonacci_puntos['low_compras'] = df_last_three_candles['low'][1]
                         self.horas['hora_primer_fibonacci_compras'] = df_last_three_candles['time'][1]  # Para depurar
+                        self.primer_fibonacci_anterior['compras'] = df_last_three_candles['low'][1]
                     
                 if self.min1 and not self.roturas['ventas'] and self.buscar['ventas']:
                     # Buscar el último mínimo antes del nuevo máximo sin pasarse
                     
-                    if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2]:
+                    if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2] and df_last_three_candles['high'][1] > self.primer_fibonacci_anterior['ventas']:
                         self.min_antes_max = max(
                             [(valor, tiempo) for valor, tiempo in self.min1 if tiempo < df_last_three_candles['time'][1]],
                             key=lambda x: x[1],  # Comparamos los valores de tiempo
@@ -143,6 +146,7 @@ class Algorithm:
                         )
                         self.fibonacci_puntos['high_ventas'] = df_last_three_candles['high'][1]
                         self.horas['hora_primer_fibonacci_ventas'] = df_last_three_candles['time'][1]  # Para depurar
+                        self.primer_fibonacci_anterior['ventas'] = df_last_three_candles['high'][1]
 
                 # Fase 5: buscamos que se rompa el máximo o el mínimo de la Fase 3
                 if self.fibonacci_puntos['low_compras'] is not None and not self.roturas['compras'] and not self.pausa['compra']:
@@ -557,7 +561,7 @@ while i < len(df_ticks):
         algo._process_data(new_data, last_three_candles)
         pbar.update(1)
         if algo.operacion_finalizada['compra'] and algo.operacion_finalizada['venta']: break
-    i += 1
+    i += 1  # Procesar cada 10 ticks
 # Cerrar la conexión con MetaTrader 5
 mt5.shutdown()
 
