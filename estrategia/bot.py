@@ -99,12 +99,14 @@ class Algorithm:
             if not self.roturas['compras']:
                 if df_last_three_candles['high'][0] <= df_last_three_candles['high'][1] >= df_last_three_candles['high'][2]:
                     if df_last_three_candles['time'][1] not in self.conjunto_fechas_maxmin_compra:
+                        self.primer_fibonacci_anterior['compras'] = float('inf')
                         self.conjunto_fechas_maxmin_compra.add(df_last_three_candles['time'][1])
                         self.max1.append((df_last_three_candles['high'][1], df_last_three_candles['time'][1]))
 
             if not self.roturas['ventas']:
                 if df_last_three_candles['low'][0] >= df_last_three_candles['low'][1] <= df_last_three_candles['low'][2]:
                     if df_last_three_candles['time'][1] not in self.conjunto_fechas_maxmin_venta:
+                        self.primer_fibonacci_anterior['ventas'] = float('-inf')
                         self.conjunto_fechas_maxmin_venta.add(df_last_three_candles['time'][1])
                         self.min1.append((df_last_three_candles['low'][1], df_last_three_candles['time'][1]))
 
@@ -483,87 +485,88 @@ class Algorithm:
 
         plt.show()
 
-dia = int(input('Introduce el día: '))
-mes = int(input('Introduce el mes: '))
-anio = int(input('Introduce el año: '))
+if __name__ == '__main__':
+    dia = int(input('Introduce el día: '))
+    mes = int(input('Introduce el mes: '))
+    anio = int(input('Introduce el año: '))
 
-# Iniciar MetaTrader 5
-if not mt5.initialize():
-    print("Error al iniciar MetaTrader 5")
+    # Iniciar MetaTrader 5
+    if not mt5.initialize():
+        print("Error al iniciar MetaTrader 5")
+        mt5.shutdown()
+
+    # Definir los parámetros
+    symbol = "EURUSD"
+    timeframe = mt5.TIMEFRAME_M5
+    start_time = datetime(anio, mes, dia, 2, 0, 0, tzinfo=timezone.utc)  # 01:00 UTC+1
+    end_time = datetime(anio, mes, dia, 8, 55, 0, tzinfo=timezone.utc)  # 07:55 UTC+1
+
+
+    # Obtener los datos históricos de MetaTrader 5
+    rates_session = mt5.copy_rates_range(symbol, timeframe, start_time, end_time)
+
+    # Convertir a DataFrame
+    df_session = pd.DataFrame(rates_session)
+
+    # Calcular el mínimo de los mínimos y el máximo de los máximos
+    min_session = df_session['low'].min()
+    max_session = df_session['high'].max()
+
+
+    # Una vez tenemos el máximo y el mínimo de la sesión
+    start_time = datetime(anio, mes, dia, 2, 0
+                        , 0, tzinfo=timezone.utc)  # 07:55 UTC+1
+    end_time = datetime(anio, mes, dia, 21, 0, 0, tzinfo=timezone.utc)  # 20:00 UTC+1
+
+
+
+    # Obtener los datos históricos de MetaTrader 5
+    rates = mt5.copy_rates_range(symbol, timeframe, start_time, end_time)
+    ticks = mt5.copy_ticks_range(symbol, start_time, end_time, mt5.COPY_TICKS_ALL)
+
+    # Comprobar si obtuvimos datos
+    if rates is None or len(rates) == 0:
+        print("No se obtuvieron datos de las velas.")
+    else:
+        print(f"Datos de velas obtenidos: {len(rates)}")
+
+    if ticks is None or len(ticks) == 0:
+        print("No se obtuvieron datos de ticks.")
+    else:
+        print(f"Datos de ticks obtenidos: {len(ticks)}")
+
+    # Convertir los datos a un DataFrame de velas (5 minutos)
+    df_candles = pd.DataFrame(rates)
+    df_candles['time'] = pd.to_datetime(df_candles['time'], unit='s', utc=True)
+
+    # Convertir los datos a un DataFrame de ticks
+    df_ticks = pd.DataFrame(ticks)
+    df_ticks['time'] = pd.to_datetime(df_ticks['time'], unit='s', utc=True)
+    # Instancia del algoritmo
+    algo = Algorithm(dia=dia, mes=mes, anio= anio, start_session=(2, 0), end_session=(8, 55), max_session=max_session, min_session=min_session, pips=2, max_pips=10.8)
+
+    # Recorrer los datos de ticks y procesarlos
+    # Asegurarse de que estamos trabajando con el índice correcto
+    # Recorrer los datos de velas y ticks
+
+    i = 0
+    pbar = tqdm(total=len(df_ticks), desc="Procesando ticks", unit="tick")
+    while i < len(df_ticks):
+        tick = df_ticks.iloc[i]
+        # Obtener las tres velas previas al tick actual
+        last_three_candles = df_candles[df_candles['time'] < tick['time']].iloc[-3:][['time', 'high', 'low']].to_dict('records')
+        if len(last_three_candles) == 3:  # Solo procesamos si tenemos 3 velas anteriores
+            # Datos del tick para procesar
+            new_data = {'time': int(tick['time'].timestamp()),  # Aseguramos que 'time' es un timestamp entero
+                        'bid': tick['bid'],  # Usamos el precio 'bid' de los ticks
+                        'ask': tick['ask']}
+            # Llamar al método _process_data con los datos actualizados
+            algo._process_data(new_data, last_three_candles)
+            pbar.update(10)
+            if algo.operacion_finalizada['compra'] and algo.operacion_finalizada['venta']: break
+        i += 10  # Procesar cada 10 ticks
+    # Cerrar la conexión con MetaTrader 5
     mt5.shutdown()
 
-# Definir los parámetros
-symbol = "EURUSD"
-timeframe = mt5.TIMEFRAME_M5
-start_time = datetime(anio, mes, dia, 2, 0, 0, tzinfo=timezone.utc)  # 01:00 UTC+1
-end_time = datetime(anio, mes, dia, 8, 55, 0, tzinfo=timezone.utc)  # 07:55 UTC+1
-
-
-# Obtener los datos históricos de MetaTrader 5
-rates_session = mt5.copy_rates_range(symbol, timeframe, start_time, end_time)
-
-# Convertir a DataFrame
-df_session = pd.DataFrame(rates_session)
-
-# Calcular el mínimo de los mínimos y el máximo de los máximos
-min_session = df_session['low'].min()
-max_session = df_session['high'].max()
-
-
-# Una vez tenemos el máximo y el mínimo de la sesión
-start_time = datetime(anio, mes, dia, 2, 0
-                      , 0, tzinfo=timezone.utc)  # 07:55 UTC+1
-end_time = datetime(anio, mes, dia, 21, 0, 0, tzinfo=timezone.utc)  # 20:00 UTC+1
-
-
-
-# Obtener los datos históricos de MetaTrader 5
-rates = mt5.copy_rates_range(symbol, timeframe, start_time, end_time)
-ticks = mt5.copy_ticks_range(symbol, start_time, end_time, mt5.COPY_TICKS_ALL)
-
-# Comprobar si obtuvimos datos
-if rates is None or len(rates) == 0:
-    print("No se obtuvieron datos de las velas.")
-else:
-    print(f"Datos de velas obtenidos: {len(rates)}")
-
-if ticks is None or len(ticks) == 0:
-    print("No se obtuvieron datos de ticks.")
-else:
-    print(f"Datos de ticks obtenidos: {len(ticks)}")
-
-# Convertir los datos a un DataFrame de velas (5 minutos)
-df_candles = pd.DataFrame(rates)
-df_candles['time'] = pd.to_datetime(df_candles['time'], unit='s', utc=True)
-
-# Convertir los datos a un DataFrame de ticks
-df_ticks = pd.DataFrame(ticks)
-df_ticks['time'] = pd.to_datetime(df_ticks['time'], unit='s', utc=True)
-# Instancia del algoritmo
-algo = Algorithm(dia=dia, mes=mes, anio= anio, start_session=(2, 0), end_session=(8, 55), max_session=max_session, min_session=min_session, pips=2, max_pips=10.8)
-
-# Recorrer los datos de ticks y procesarlos
-# Asegurarse de que estamos trabajando con el índice correcto
-# Recorrer los datos de velas y ticks
-
-i = 0
-pbar = tqdm(total=len(df_ticks), desc="Procesando ticks", unit="tick")
-while i < len(df_ticks):
-    tick = df_ticks.iloc[i]
-    # Obtener las tres velas previas al tick actual
-    last_three_candles = df_candles[df_candles['time'] < tick['time']].iloc[-3:][['time', 'high', 'low']].to_dict('records')
-    if len(last_three_candles) == 3:  # Solo procesamos si tenemos 3 velas anteriores
-        # Datos del tick para procesar
-        new_data = {'time': int(tick['time'].timestamp()),  # Aseguramos que 'time' es un timestamp entero
-                    'bid': tick['bid'],  # Usamos el precio 'bid' de los ticks
-                    'ask': tick['ask']}
-        # Llamar al método _process_data con los datos actualizados
-        algo._process_data(new_data, last_three_candles)
-        pbar.update(1)
-        if algo.operacion_finalizada['compra'] and algo.operacion_finalizada['venta']: break
-    i += 1  # Procesar cada 10 ticks
-# Cerrar la conexión con MetaTrader 5
-mt5.shutdown()
-
-print(algo)
-algo.generar_grafico()
+    print(algo)
+    algo.generar_grafico()
