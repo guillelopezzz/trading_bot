@@ -52,6 +52,8 @@ La función generar_grafico mostrará un gráfico como este:
 
 ![trade_15-10-2024](https://github.com/user-attachments/assets/da0c73ab-5425-49c5-83f5-91d62b5eab23)
 
+Donde las líneas horizontales representan los puntos clave del retroceso de Fibonacci, el rectángulo gris representa el Stop Loss y el azul el Take Profit.
+
 ⚠️ Advertencia
 
 Este proyecto no está terminado y puede contener errores. No debe usarse en cuentas reales sin pruebas exhaustivas. El trading conlleva riesgos y puede generar pérdidas.
