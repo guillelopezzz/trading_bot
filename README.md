@@ -1,40 +1,40 @@
-🤖 Trading Automation Bot – Forex EUR/USD
+Trading Automation Bot – Forex EUR/USD
+Este proyecto es una solución de automatización de operaciones de trading en el mercado Forex, específicamente para el par EUR/USD. El sistema simula un entorno de trading en tiempo real, procesando precios secuencialmente y aplicando una estrategia de trading definida. Además, incluye una función de visualización gráfica que permite analizar las operaciones realizadas en un día específico.
 
-Este proyecto es una automatización de las operaciones de un trader rentable en el mercado Forex, específicamente en el par EUR/USD. Se basa en una simulación en tiempo real donde se procesan los precios uno a uno y se aplica una estrategia de trading. Además, cuenta con una función generar_grafico que permite visualizar gráficamente las operaciones realizadas en un día concreto.
+🚀 Funcionalidades principales
+Simulación de streaming: Procesamiento secuencial de precios, replicando un entorno de mercado en tiempo real.
 
+Automatización de operaciones: Ejecución automática de apertura y cierre de trades basados en la estrategia implementada.
 
-🚀 Funcionalidades
+Visualización de operaciones: Función generar_grafico que permite visualizar gráficamente las operaciones realizadas en un día específico.
 
-✔ Simulación de streaming: Procesamiento secuencial de precios como si fuera un mercado en vivo.
-
-✔ Automatización de operaciones: Apertura y cierre de trades según la estrategia definida.
-
-✔ Visualización de operaciones: Función generar_grafico que muestra qué ha hecho el bot en un día específico.
-
-✔ Optimización de parámetros: Se pueden ajustar distintos valores de la estrategia para mejorar la rentabilidad.
-
+Optimización de parámetros: Capacidad para ajustar los parámetros de la estrategia con el fin de mejorar la rentabilidad y el rendimiento.
 
 📌 Tecnologías utilizadas y su propósito
+1. MetaTrader 5 (MetaTrader5)
+Propósito: Conexión con la plataforma de trading MetaTrader 5.
 
-1️⃣ MetaTrader 5 (MetaTrader5): API para conectar con la plataforma de trading MetaTrader 5.
+Uso: Obtención de datos de mercado en tiempo real, ejecución de órdenes y monitoreo de posiciones.
 
-✅ Se usa para obtener datos del mercado, ejecutar órdenes y monitorear posiciones.
+2. Módulos de manejo de tiempo (datetime, timezone, timedelta)
+Propósito: Gestión de fechas y tiempos en diferentes zonas horarias.
 
-2️⃣ datetime, timezone y timedelta: Manejo de fechas y tiempos en diferentes zonas horarias.
+Uso: Sincronización de operaciones de trading con la hora del mercado y manejo de eventos temporales.
 
-✅ Se usa para sincronizar operaciones de trading con la hora del mercado.
+3. Pandas (pandas)
+Propósito: Manipulación y análisis de datos estructurados en formato tabular.
 
-3️⃣ pandas (pandas): Manipulación y análisis de datos estructurados en formato tabular.
+Uso: Organización de datos de precios, generación de estadísticas y preparación de datos para su análisis.
 
-✅ Se usa para organizar datos de precios, generar estadísticas y alimentar modelos.
+4. Mplfinance (mplfinance)
+Propósito: Visualización de gráficos financieros (velas, líneas, etc.).
 
-4️⃣ mplfinance (mplfinance): Visualización de gráficos financieros (velas, líneas, etc.).
+Uso: Representación gráfica de los movimientos del mercado y análisis de tendencias.
 
-✅ Se usa para graficar los movimientos del mercado y analizar tendencias.
+5. Matplotlib (matplotlib.pyplot)
+Propósito: Creación de gráficos y visualización de datos.
 
-5️⃣ matplotlib (matplotlib.pyplot): Creación de gráficos y visualización de datos.
-
-✅ Se usa en conjunto con mplfinance para agregar detalles a los gráficos.
+Uso: Complemento a mplfinance para agregar detalles y personalización en los gráficos generados.
 
 📊 Ejemplo de visualización
 
