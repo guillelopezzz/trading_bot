@@ -14,31 +14,31 @@ Optimización de parámetros: Capacidad para ajustar los parámetros de la estra
 
 ## Tecnologías utilizadas y su propósito
 
-1. MetaTrader 5 (MetaTrader5)
+### MetaTrader 5 (MetaTrader5)
 
 Propósito: Conexión con la plataforma de trading MetaTrader 5.
 
 Uso: Obtención de datos de mercado en tiempo real, ejecución de órdenes y monitoreo de posiciones.
 
-2. Módulos de manejo de tiempo (datetime, timezone, timedelta)
+### Módulos de manejo de tiempo (datetime, timezone, timedelta)
 
 Propósito: Gestión de fechas y tiempos en diferentes zonas horarias.
 
 Uso: Sincronización de operaciones de trading con la hora del mercado y manejo de eventos temporales.
 
-3. Pandas (pandas)
+### Pandas (pandas)
    
 Propósito: Manipulación y análisis de datos estructurados en formato tabular.
 
 Uso: Organización de datos de precios, generación de estadísticas y preparación de datos para su análisis.
 
-4. Mplfinance (mplfinance)
+### Mplfinance (mplfinance)
    
 Propósito: Visualización de gráficos financieros (velas, líneas, etc.).
 
 Uso: Representación gráfica de los movimientos del mercado y análisis de tendencias.
 
-5. Matplotlib (matplotlib.pyplot)
+### Matplotlib (matplotlib.pyplot)
    
 Propósito: Creación de gráficos y visualización de datos.
 
