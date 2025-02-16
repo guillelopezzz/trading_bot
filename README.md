@@ -2,7 +2,7 @@ Trading Automation Bot – Forex EUR/USD
 
 Este proyecto es una solución de automatización de operaciones de trading en el mercado Forex, específicamente para el par EUR/USD. El sistema simula un entorno de trading en tiempo real, procesando precios secuencialmente y aplicando una estrategia de trading definida. Además, incluye una función de visualización gráfica que permite analizar las operaciones realizadas en un día específico.
 
-🚀 Funcionalidades principales
+Funcionalidades principales
 
 Simulación de streaming: Procesamiento secuencial de precios, replicando un entorno de mercado en tiempo real.
 
@@ -12,7 +12,7 @@ Visualización de operaciones: Función generar_grafico que permite visualizar g
 
 Optimización de parámetros: Capacidad para ajustar los parámetros de la estrategia con el fin de mejorar la rentabilidad y el rendimiento.
 
-📌 Tecnologías utilizadas y su propósito
+Tecnologías utilizadas y su propósito
 
 1. MetaTrader 5 (MetaTrader5)
 
@@ -44,7 +44,7 @@ Propósito: Creación de gráficos y visualización de datos.
 
 Uso: Complemento a mplfinance para agregar detalles y personalización en los gráficos generados.
 
-📊 Ejemplo de visualización
+Ejemplo de visualización
 
 La función generar_grafico mostrará un gráfico como este:
 
