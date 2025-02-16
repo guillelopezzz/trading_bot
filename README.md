@@ -40,6 +40,7 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 La función generar_grafico mostrará un gráfico como este:
 
 📈 Ejemplo:
+
 15/10/2024:
 
 ![trade_15-10-2024](https://github.com/user-attachments/assets/da0c73ab-5425-49c5-83f5-91d62b5eab23)
