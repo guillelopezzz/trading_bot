@@ -58,8 +58,7 @@ Donde las líneas horizontales representan los puntos clave del retroceso de Fib
 
 Este proyecto no está terminado y puede contener errores. No debe usarse en cuentas reales sin pruebas exhaustivas. El trading conlleva riesgos y puede generar pérdidas.
 
-
-🔮 Futuras mejoras
+## Futuras mejoras
 
 Implementar modelos de Deep Learning (redes recurrentes) para optimizar la estrategia.
 
