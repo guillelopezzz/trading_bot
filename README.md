@@ -2,6 +2,7 @@
 
 Este proyecto es una automatización de las operaciones de un trader rentable en el mercado Forex, específicamente en el par EUR/USD. Se basa en una simulación en tiempo real donde se procesan los precios uno a uno y se aplica una estrategia de trading. Además, cuenta con una función generar_grafico que permite visualizar gráficamente las operaciones realizadas en un día concreto.
 
+
 🚀 Funcionalidades
 
 ✔ Simulación de streaming: Procesamiento secuencial de precios como si fuera un mercado en vivo.
@@ -11,6 +12,7 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 ✔ Visualización de operaciones: Función generar_grafico que muestra qué ha hecho el bot en un día específico.
 
 ✔ Optimización de parámetros: Se pueden ajustar distintos valores de la estrategia para mejorar la rentabilidad.
+
 
 📌 Tecnologías utilizadas y su propósito
 
@@ -34,9 +36,11 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 
 ✅ Se usa en conjunto con mplfinance para agregar detalles a los gráficos.
 
+
 ⚠️ Advertencia
 
 Este proyecto no está terminado y puede contener errores. No debe usarse en cuentas reales sin pruebas exhaustivas. El trading conlleva riesgos y puede generar pérdidas.
+
 
 🔮 Futuras mejoras
 
