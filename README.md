@@ -37,9 +37,8 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 ✅ Se usa en conjunto con mplfinance para agregar detalles a los gráficos.
 
 📊 Ejemplo de visualización
-La función generar_grafico mostrará un gráfico como este:
 
-📈 Ejemplo:
+La función generar_grafico mostrará un gráfico como este:
 
 15/10/2024:
 
