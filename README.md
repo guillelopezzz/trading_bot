@@ -13,22 +13,23 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 ✔ Optimización de parámetros: Se pueden ajustar distintos valores de la estrategia para mejorar la rentabilidad.
 
 📌 Tecnologías utilizadas y su propósito
-1️⃣ MetaTrader 5 (MetaTrader5)
-📌 Propósito: API para conectar con la plataforma de trading MetaTrader 5.
+
+1️⃣ MetaTrader 5 (MetaTrader5): API para conectar con la plataforma de trading MetaTrader 5.
+
 ✅ Se usa para obtener datos del mercado, ejecutar órdenes y monitorear posiciones.
 
-2️⃣ datetime, timezone y timedelta
-📌 Propósito: Manejo de fechas y tiempos en diferentes zonas horarias.
+2️⃣ datetime, timezone y timedelta: Manejo de fechas y tiempos en diferentes zonas horarias.
+
 ✅ Se usa para sincronizar operaciones de trading con la hora del mercado.
 
-3️⃣ pandas (pandas)
-📌 Propósito: Manipulación y análisis de datos estructurados en formato tabular.
+3️⃣ pandas (pandas): Manipulación y análisis de datos estructurados en formato tabular.
+
 ✅ Se usa para organizar datos de precios, generar estadísticas y alimentar modelos.
 
-4️⃣ mplfinance (mplfinance)
-📌 Propósito: Visualización de gráficos financieros (velas, líneas, etc.).
+4️⃣ mplfinance (mplfinance): Visualización de gráficos financieros (velas, líneas, etc.).
+
 ✅ Se usa para graficar los movimientos del mercado y analizar tendencias.
 
-5️⃣ matplotlib (matplotlib.pyplot)
-📌 Propósito: Creación de gráficos y visualización de datos.
+5️⃣ matplotlib (matplotlib.pyplot): Creación de gráficos y visualización de datos.
+
 ✅ Se usa en conjunto con mplfinance para agregar detalles a los gráficos.
