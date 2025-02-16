@@ -190,11 +190,8 @@ class Algorithm:
                         self.tpysl['stoploss_compra'] = self.fibonacci_puntos['low_compras'] - (0.0001 * self.pips)  # SL a self.pips por debajo del nivel Fibonacci
                         risk = new_data['bid'] - self.tpysl['stoploss_compra']  # Distancia entre el precio actual y el SL
                         if risk > self.max_pips * 0.0001:
-                            self.tpysl['stoploss_compra'] = self.fibonacci(self.fibonacci_puntos['low_compras'], self.fibonacci_puntos['high_compras'], 'down', 0.7) - 0.0003 # 3 pips por debajo de Fibo 0.7
-                            risk = new_data['bid'] - self.tpysl['stoploss_compra']
-                            if risk > self.max_pips * 0.0001:
-                                self.operacion_finalizada['compra'] = True
-                                self.pausa['ventas'] = False
+                            self.operacion_finalizada['compra'] = True
+                            self.pausa['ventas'] = False
                         self.precios['compra_inicial'] = new_data['bid'] # abrimos operación de compra
                         self.horas_operacion['inicio_compra'] = tick_time.time()
                         self.tpysl['takeprofit_compra'] = new_data['bid'] + 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
@@ -206,11 +203,8 @@ class Algorithm:
                         self.tpysl['stoploss_venta'] = self.fibonacci_puntos['high_ventas'] + (0.0001 * self.pips)  # SL a self.pips por encima del nivel Fibonacci
                         risk = self.tpysl['stoploss_venta'] - new_data['bid']  # Distancia entre el SL y el precio actual
                         if risk > self.max_pips * 0.0001:
-                            self.tpysl['stoploss_venta'] = self.fibonacci(self.fibonacci_puntos['high_ventas'], self.fibonacci_puntos['low_ventas'], 'up', 0.7) + 0.0003 # 3 pips por encima de Fibo 0.7
-                            risk = self.tpysl['stoploss_venta'] - new_data['bid']
-                            if risk > self.max_pips * 0.0001:
-                                self.operacion_finalizada['venta'] = True
-                                self.pausa['compras'] = False
+                            self.operacion_finalizada['venta'] = True
+                            self.pausa['compras'] = False
                         self.precios['venta_inicial'] = new_data['bid'] # abrimos operación de venta
                         self.horas_operacion['inicio_venta'] = tick_time.time()
                         self.tpysl['takeprofit_venta'] = new_data['bid'] - 2 * risk  # TP a 2 veces la distancia desde el precio actual al SL
