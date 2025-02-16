@@ -42,8 +42,7 @@ La función generar_grafico mostrará un gráfico como este:
 📈 Ejemplo:
 15/10/2024:
 
-![trade_17-10-2024](https://github.com/user-attachments/assets/7f6c5fad-7b0b-4b2a-a814-bf53b59d265f)
-
+![trade_15-10-2024](https://github.com/user-attachments/assets/da0c73ab-5425-49c5-83f5-91d62b5eab23)
 
 ⚠️ Advertencia
 
