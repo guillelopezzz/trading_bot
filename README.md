@@ -33,3 +33,11 @@ Este proyecto es una automatización de las operaciones de un trader rentable en
 5️⃣ matplotlib (matplotlib.pyplot): Creación de gráficos y visualización de datos.
 
 ✅ Se usa en conjunto con mplfinance para agregar detalles a los gráficos.
+
+⚠️ Advertencia
+
+Este proyecto no está terminado y puede contener errores. No debe usarse en cuentas reales sin pruebas exhaustivas. El trading conlleva riesgos y puede generar pérdidas.
+
+🔮 Futuras mejoras
+Implementar modelos de Deep Learning (redes recurrentes) para optimizar la estrategia.
+Mejorar la eficiencia con procesamiento en paralelo.
