@@ -85,7 +85,7 @@ class Algorithm:
             self.horas['hora_segundo_fibonacci_ventas'] = None
             self.fibonacci618['ventas'] = None
 
-    def _process_data(self, new_data, last_three_candles):
+    def process_data(self, new_data, last_three_candles):
         if not (self.operacion_finalizada['compra'] and self.operacion_finalizada['venta']):
             # el dato viene en formato tick, ¿qué nos interesa? Nos interesa el precio bid y la hora. Aunque realmente solo nos interesa la hora de 01:00 a 07:55
             # también se necesitan las 3 últimas velas de temporalidad 5 minutos para poder hallar máximos y mínimos
@@ -555,7 +555,7 @@ if __name__ == '__main__':
                         'bid': tick['bid'],  # Usamos el precio 'bid' de los ticks
                         'ask': tick['ask']}
             # Llamar al método _process_data con los datos actualizados
-            algo._process_data(new_data, last_three_candles)
+            algo.process_data(new_data, last_three_candles)
             pbar.update(10)
             if algo.operacion_finalizada['compra'] and algo.operacion_finalizada['venta']: break
         i += 10  # Procesar cada 10 ticks
