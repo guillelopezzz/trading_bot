@@ -62,4 +62,4 @@ Este proyecto no está terminado y puede contener errores. No debe usarse en cue
 
 Implementar modelos de Deep Learning (redes recurrentes) para optimizar la estrategia.
 
-Mejorar la eficiencia con procesamiento en paralelo.
+Mejorar la eficiencia con procesamiento paralelo.
