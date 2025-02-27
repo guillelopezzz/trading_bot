@@ -152,11 +152,11 @@ class Algorithm:
 
                 # Fase 5: buscamos que se rompa el máximo o el mínimo de la Fase 3
                 if self.fibonacci_puntos['low_compras'] is not None and not self.roturas['compras'] and not self.pausa['compra']:
-                    if new_data['bid'] > self.max_antes_min[0]:
+                    if new_data['bid'] > self.max_antes_min[0] and new_data['bid'] > self.min_session:
                         self.roturas['compras'] = True
 
                 if self.fibonacci_puntos['high_ventas'] is not None and not self.roturas['ventas'] and not self.pausa['venta']:
-                    if new_data['bid'] < self.min_antes_max[0]:
+                    if new_data['bid'] < self.min_antes_max[0] and new_data['bid'] < self.max_session:
                         self.roturas['ventas'] = True
 
                 # Fase 6: buscamos un máximo o un mínimo después de la rotura, que será nuestro máximo o mínimo de fibonacci
@@ -480,6 +480,7 @@ class Algorithm:
         plt.show()
 
 if __name__ == '__main__':
+    
     dia = int(input('Introduce el día: '))
     mes = int(input('Introduce el mes: '))
     anio = int(input('Introduce el año: '))
