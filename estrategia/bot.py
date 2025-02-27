@@ -8,15 +8,11 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from tqdm import tqdm
 
-class Algorithm:
-    """
-    Clase base para representar un algoritmo genérico.
-    Puedes extender esta clase para implementar algoritmos específicos.
-    """
+class Strategy:
 
     def __init__(self, dia, mes, anio, max_session, min_session, start_session=(2, 0), end_session=(8, 55), pips = 2, max_pips = 10.8):
         """
-        Constructor de la clase Algorithm.
+        Constructor de la clase.
         """
         self.start_session = start_session
         self.end_session = end_session
@@ -538,7 +534,7 @@ if __name__ == '__main__':
     df_ticks = pd.DataFrame(ticks)
     df_ticks['time'] = pd.to_datetime(df_ticks['time'], unit='s', utc=True)
     # Instancia del algoritmo
-    algo = Algorithm(dia=dia, mes=mes, anio= anio, start_session=(2, 0), end_session=(8, 55), max_session=max_session, min_session=min_session, pips=2, max_pips=10.8)
+    algo = Strategy(dia=dia, mes=mes, anio= anio, start_session=(2, 0), end_session=(8, 55), max_session=max_session, min_session=min_session, pips=2, max_pips=10.8)
 
     # Recorrer los datos de ticks y procesarlos
     # Asegurarse de que estamos trabajando con el índice correcto
