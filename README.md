@@ -60,6 +60,6 @@ Este proyecto no está terminado y puede contener errores. No debe usarse en cue
 
 ## Futuras mejoras
 
-Implementar modelos de Deep Learning (redes recurrentes) para optimizar la estrategia.
+Implementar modelos de Deep Learning para optimizar la estrategia.
 
 Mejorar la eficiencia con procesamiento paralelo.
